@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3001");
 
 function App() {
   const [message, setMessage] = useState("");
@@ -7,9 +10,19 @@ function App() {
   const sendMessage = () => {
     if (message.trim() === "") return;
 
-    setMessages([...messages, message]);
+    socket.emit("send_message", message);
     setMessage("");
   };
+
+  useEffect(() => {
+    socket.on("receive_message", (data) => {
+      setMessages((prev) => [...prev, data]);
+    });
+
+    return () => {
+      socket.off("receive_message");
+    };
+  }, []);
 
   return (
     <div style={{ padding: "20px" }}>
