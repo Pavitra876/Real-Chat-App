@@ -6,24 +6,31 @@ const socket = io("http://localhost:3001");
 function App() {
   const [username, setUsername] = useState("");
   const [joined, setJoined] = useState(false);
+  const [room, setRoom] = useState("");
+  
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
   const joinChat = () => {
-    if (username.trim() !== "") {
-      setJoined(true);
-    }
-  };
+  if (username.trim() !== "" && room.trim() !== "") {
+    socket.emit("join_room", room);
+    setJoined(true);
+  }
+};
+
+  
 
   const sendMessage = () => {
     if (message.trim() === "") return;
 
     const messageData = {
+      room: room,
       author: username,
       message: message,
       time: new Date().toLocaleTimeString(),
     };
+    
 
     socket.emit("send_message", messageData);
 
@@ -60,6 +67,13 @@ function App() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 mb-4"
+          />
+          <input
+             type="text"
+             placeholder="Enter Room Name"
+             value={room}
+             onChange={(e) => setRoom(e.target.value)}
+             className="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 mb-4"
           />
 
           <button
