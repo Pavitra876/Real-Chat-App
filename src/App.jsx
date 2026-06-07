@@ -5,32 +5,30 @@ const socket = io("http://localhost:3001");
 
 function App() {
   const [username, setUsername] = useState("");
-  const [joined, setJoined] = useState(false);
   const [room, setRoom] = useState("");
-  
+  const [joined, setJoined] = useState(false);
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   const joinChat = () => {
-  if (username.trim() !== "" && room.trim() !== "") {
-    socket.emit("join_room", room);
-    setJoined(true);
-  }
-};
-
-  
+    if (username.trim() !== "" && room.trim() !== "") {
+      socket.emit("join_room", room);
+      socket.emit("user_joined", username);
+      setJoined(true);
+    }
+  };
 
   const sendMessage = () => {
     if (message.trim() === "") return;
 
     const messageData = {
-      room: room,
+      room,
       author: username,
-      message: message,
+      message,
       time: new Date().toLocaleTimeString(),
     };
-    
 
     socket.emit("send_message", messageData);
 
@@ -44,8 +42,13 @@ function App() {
       setMessages((prev) => [...prev, data]);
     });
 
+    socket.on("online_users", (users) => {
+      setOnlineUsers(users);
+    });
+
     return () => {
       socket.off("receive_message");
+      socket.off("online_users");
     };
   }, []);
 
@@ -68,12 +71,13 @@ function App() {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 mb-4"
           />
+
           <input
-             type="text"
-             placeholder="Enter Room Name"
-             value={room}
-             onChange={(e) => setRoom(e.target.value)}
-             className="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 mb-4"
+            type="text"
+            placeholder="Enter Room Name"
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+            className="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 mb-4"
           />
 
           <button
@@ -89,7 +93,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white flex">
-
+      
       {/* Sidebar */}
       <div className="w-72 border-r border-cyan-500/20 bg-slate-900/40 backdrop-blur-xl p-5">
 
@@ -97,20 +101,39 @@ function App() {
           🚀 CampusConnect AI
         </h1>
 
-        <p className="text-slate-400 text-sm mb-8">
+        <p className="text-slate-400 text-sm mb-4">
           Smart Student Collaboration Platform
         </p>
 
+        <div className="bg-slate-800/50 p-3 rounded-xl mb-6">
+          <p className="text-cyan-300 font-semibold">
+            Room: {room}
+          </p>
+        </div>
+
         <h2 className="text-cyan-300 mb-4 font-semibold">
-          Online Users
+          Online Users ({onlineUsers.length})
         </h2>
 
         <div className="space-y-3">
 
-          <div className="bg-slate-800/50 p-3 rounded-xl flex items-center gap-3">
-            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <span>{username}</span>
-          </div>
+          {onlineUsers.map((user, index) => (
+            <div
+              key={index}
+              className="bg-slate-800/50 p-3 rounded-xl flex items-center gap-3"
+            >
+              <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-bold">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
+              <div>
+                <p>{user.username}</p>
+                <p className="text-xs text-green-400">
+                  Online
+                </p>
+              </div>
+            </div>
+          ))}
 
         </div>
       </div>
@@ -118,10 +141,9 @@ function App() {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
 
-        {/* Header */}
         <div className="border-b border-cyan-500/20 p-5 backdrop-blur-xl">
           <h2 className="text-2xl font-semibold">
-            General Discussion Room
+            Discussion Room
           </h2>
 
           <p className="text-slate-400">
@@ -188,7 +210,6 @@ function App() {
         </div>
 
       </div>
-
     </div>
   );
 }

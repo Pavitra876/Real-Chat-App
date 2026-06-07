@@ -15,20 +15,47 @@ const io = new Server(server, {
   },
 });
 
+let onlineUsers = [];
+
 io.on("connection", (socket) => {
   console.log("User Connected:", socket.id);
 
+  // Join Room
   socket.on("join_room", (room) => {
-  socket.join(room);
-  console.log(`User joined room: ${room}`);
-});
+    socket.join(room);
+    console.log(`User joined room: ${room}`);
+  });
 
-socket.on("send_message", (data) => {
-  socket.to(data.room).emit("receive_message", data);
-});
+  // Online Users
+  socket.on("user_joined", (username) => {
+    const exists = onlineUsers.find(
+      (user) => user.id === socket.id
+    );
 
+    if (!exists) {
+      onlineUsers.push({
+        id: socket.id,
+        username,
+      });
+    }
+
+    io.emit("online_users", onlineUsers);
+  });
+
+  // Messages
+  socket.on("send_message", (data) => {
+    socket.to(data.room).emit("receive_message", data);
+  });
+
+  // Disconnect
   socket.on("disconnect", () => {
-    console.log("User Disconnected");
+    onlineUsers = onlineUsers.filter(
+      (user) => user.id !== socket.id
+    );
+
+    io.emit("online_users", onlineUsers);
+
+    console.log("User Disconnected:", socket.id);
   });
 });
 
