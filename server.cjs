@@ -43,9 +43,11 @@ io.on("connection", (socket) => {
   });
 
   // Messages
+  // Messages
   socket.on("send_message", (data) => {
-    socket.to(data.room).emit("receive_message", data);
-  });
+    io.emit("receive_message", data);
+});
+  
 
   // Disconnect
   socket.on("disconnect", () => {
