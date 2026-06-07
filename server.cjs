@@ -20,6 +20,10 @@ let onlineUsers = [];
 io.on("connection", (socket) => {
   console.log("User Connected:", socket.id);
 
+  socket.on("typing", (username) => {
+  socket.broadcast.emit("user_typing", username);
+});
+
   // Join Room
   socket.on("join_room", (room) => {
     socket.join(room);
