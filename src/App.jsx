@@ -57,7 +57,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center">
         <div className="bg-slate-900/70 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-96 border border-cyan-500/20">
           <h1 className="text-4xl font-bold text-cyan-400 mb-3 text-center">
-            Real Time Chat Application
+            Campus Connect with AI
           </h1>
 
           <p className="text-slate-400 text-center mb-8">
